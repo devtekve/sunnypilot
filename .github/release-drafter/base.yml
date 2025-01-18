@@ -35,6 +35,7 @@ name-template: 'v$RESOLVED_VERSION 🚀'
 tag-template: 'v$RESOLVED_VERSION'
 version-template: "0.$MAJOR.$MINOR.$PATCH" # The day OP becomes v1, we need to bump this
 tag-prefix: "v0." # The day OP becomes v1, we need to bump this
+prerelease-identifier: 'rc'
 template: |
   ## Changes
 
