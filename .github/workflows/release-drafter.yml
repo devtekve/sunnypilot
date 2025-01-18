@@ -1,0 +1,51 @@
+name: Release Drafter
+
+on:
+  push:
+    branches:
+      - master-new
+    tags:
+      - 'v*'
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  update_dev_draft:
+    if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      # Generate the dev version number
+      - name: Generate version
+        id: version
+        run: |
+          # Format: YYYY.MM.DD-RUNNUMBER
+          VERSION="$(date +'%Y.%m.%d')-${{ github.run_number }}"
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "Generated version: ${VERSION}"
+
+      - uses: release-drafter/release-drafter@v6
+        with:
+          config-name: release-drafter/dev.yml
+          version: ${{ env.VERSION }}  # Use our generated version
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  update_release_draft:
+    if: startsWith(github.ref, 'refs/tags/v')  # Only run for version tags
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: release-drafter/release-drafter@v6
+        with:
+          config-name: release-drafter/release.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
