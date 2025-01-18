@@ -34,7 +34,9 @@ jobs:
       - uses: release-drafter/release-drafter@v6
         with:
           config-name: release-drafter/dev.yml
-          version: ${{ env.VERSION }}  # Use our generated version
+          version: ${{ env.VERSION }}
+          name: ${{ env.VERSION }}
+          tag: ${{ env.VERSION }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
