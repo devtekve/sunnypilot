@@ -34,7 +34,7 @@ version-resolver:
 name-template: 'v$RESOLVED_VERSION 🚀'
 tag-template: 'v$RESOLVED_VERSION'
 version-template: "0.$MAJOR.$MINOR.$PATCH"
-tag-prefix: "0."
+tag-prefix: "v0."
 template: |
   ## Changes
 
