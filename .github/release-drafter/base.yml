@@ -32,6 +32,7 @@ version-resolver:
       - 'patch'
   default: patch
 name-template: 'v$RESOLVED_VERSION 🚀'
+tag-template: 'v$RESOLVED_VERSION'
 version-template: "0.$MAJOR.$MINOR.$PATCH"
 template: |
   ## Changes
