@@ -23,7 +23,7 @@ Version 0.9.8 (2025-02-28)
 * Enable openpilot longitudinal control for Ford Q3 vehicles
 * New Toyota TSS2 longitudinal tune
 * Rivian R1S and R1T support thanks to lukasloetkolben!
-* Ford F-150, F-150 Hybrid, Mach-E, and Ranger support s
+* Ford F-150, F-150 Hybrid, Mach-E, and Ranger support 2
 
 Version 0.9.7 (2024-06-13)
 ========================
