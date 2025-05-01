@@ -80,47 +80,57 @@ jobs:
             scons-${{ runner.os }}-${{ runner.arch }}-${{ env.MASTER_BRANCH }}
             scons-${{ runner.os }}-${{ runner.arch }}
 
-      - name: Set Configuration (only forks)
-        id: set_fork_configuration
-        if: (github.event.pull_request.head.repo.fork)
+      - name: Set Feature Branch Prebuilt Configuration
+        id: set_feature_configuration
+        if: (
+              !(env.SOURCE_BRANCH == env.DEV_C3_SOURCE_BRANCH) &&
+              !(env.SOURCE_BRANCH == env.MASTER_BRANCH || env.SOURCE_BRANCH == env.MASTER_NEW_BRANCH) &&
+              !(startsWith(github.ref, 'refs/tags/'))
+            )
         run: |
           echo "BRANCH_TYPE=dispatch" >> $GITHUB_ENV
-          echo "NEW_BRANCH=${{ env.SOURCE_BRANCH }}-fork-prebuilt" >> $GITHUB_ENV
+          echo "NEW_BRANCH=${{ env.SOURCE_BRANCH }}${{ github.event.pull_request.head.repo.fork && '-fork' || '' }}-prebuilt" >> $GITHUB_ENV
           echo "VERSION=$(date '+%Y.%m.%d')-${{ github.run_number }}" >> $GITHUB_ENV
 
-      - name: Set Dev-C3-New Configuration
+      - name: Set dev-c3-new prebuilt Configuration
         id: set_dev_configuration
-        if: steps.set_fork_configuration.outcome == 'skipped' && env.SOURCE_BRANCH == env.DEV_C3_SOURCE_BRANCH
+        if: (
+                steps.set_feature_configuration.outcome == 'skipped' &&
+                env.SOURCE_BRANCH == env.DEV_C3_SOURCE_BRANCH
+            )
         run: |
           echo "BRANCH_TYPE=dev" >> $GITHUB_ENV
           echo "NEW_BRANCH=${{ env.DEV_TARGET_BRANCH }}" >> $GITHUB_ENV
           echo "VERSION=$(date '+%Y.%m.%d')-${{ github.run_number }}" >> $GITHUB_ENV
           echo "EXTRA_VERSION_IDENTIFIER=${{ github.run_number }}" >> $GITHUB_ENV
 
-      - name: Set Staging-C3-New Configuration
-        id: set_master_configuration
-        if: steps.set_dev_configuration.outcome == 'skipped' && (env.SOURCE_BRANCH == env.MASTER_BRANCH || env.SOURCE_BRANCH == env.MASTER_NEW_BRANCH)
+      - name: Set staging-c3-new prebuilt Configuration
+        id: set_staging_configuration
+        if: (
+                steps.set_feature_configuration.outcome == 'skipped' &&
+                !contains(github.event_name, 'pull_request') &&
+                steps.set_dev_configuration.outcome == 'skipped' &&
+                (env.SOURCE_BRANCH == env.MASTER_BRANCH || env.SOURCE_BRANCH == env.MASTER_NEW_BRANCH)
+            )
         run: |
           echo "BRANCH_TYPE=master" >> $GITHUB_ENV
           echo "NEW_BRANCH=${{ env.STAGING_TARGET_BRANCH }}" >> $GITHUB_ENV
           echo "EXTRA_VERSION_IDENTIFIER=staging" >> $GITHUB_ENV
           echo "VERSION=$(cat common/version.h | grep COMMA_VERSION | sed -e 's/[^0-9|.]//g')-staging" >> $GITHUB_ENV
 
-      - name: Set Release-C3-New Configuration
+      - name: Set release-c3-new prebuilt Configuration
         id: set_tag_configuration
-        if: steps.set_dev_configuration.outcome == 'skipped' && steps.set_master_configuration.outcome == 'skipped' && startsWith(github.ref, 'refs/tags/')
+        if: (
+              steps.set_feature_configuration.outcome == 'skipped' &&
+              !contains(github.event_name, 'pull_request') &&
+              steps.set_staging_configuration.outcome == 'skipped' &&
+              startsWith(github.ref, 'refs/tags/')
+            )
         run: |
           echo "BRANCH_TYPE=tag" >> $GITHUB_ENV
           echo "NEW_BRANCH=${{ env.RELEASE_TARGET_BRANCH }}" >> $GITHUB_ENV
           echo "EXTRA_VERSION_IDENTIFIER=release" >> $GITHUB_ENV
           echo "VERSION=$(cat common/version.h | grep COMMA_VERSION | sed -e 's/[^0-9|.]//g')-release" >> $GITHUB_ENV
-
-      - name: Set Feature Branch Configuration
-        if: steps.set_dev_configuration.outcome == 'skipped' && steps.set_master_configuration.outcome == 'skipped' && steps.set_tag_configuration.outcome == 'skipped'
-        run: |
-          echo "BRANCH_TYPE=dispatch" >> $GITHUB_ENV
-          echo "NEW_BRANCH=${{ env.SOURCE_BRANCH }}-prebuilt" >> $GITHUB_ENV
-          echo "VERSION=$(date '+%Y.%m.%d')-${{ github.run_number }}" >> $GITHUB_ENV
 
       - name: Set environment variables
         id: set-env
